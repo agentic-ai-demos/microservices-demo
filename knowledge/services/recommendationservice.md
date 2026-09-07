@@ -1,44 +1,45 @@
 ---
 type: Service
 title: Recommendation Service
-description: The Python recommendation service returns product IDs related to the current cart context.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/recommendationservice/recommendation_server.py
-tags: [service, python, grpc, recommendations]
+description: Python service returning related product ids, chosen at random from the catalog.
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/recommendationservice
+tags: [python, recommendations, grpc]
 timestamp: 2026-08-24T16:44:54-04:00
 source_files:
-  - src/recommendationservice/recommendation_server.py
-  - src/recommendationservice/client.py
-  - src/recommendationservice/logger.py
-  - src/recommendationservice/requirements.txt
-  - src/recommendationservice/Dockerfile
-generated_by: catalogify/0.7.0
+  - src/recommendationservice
+generated_by: catalogify/0.8.0
 open_questions:
-  - "Are recommendation results expected to be deterministic for a given cart, or is randomness acceptable for demo behavior?"
+  - "If the catalog call fails, is an empty recommendation list acceptable, or should the page fail?"
+  - "Is randomness expected to be stable per product, or fresh per request?"
 ---
-
 # Responsibilities
 
-Recommendation service implements `ListRecommendations` and returns product IDs related to the cart context sent by the frontend. It also instruments gRPC server/client behavior for traces and exposes optional profiling.
+Given a product and the ids already on the page, returns other product ids to show. The selection is random rather than modelled, so it exists to exercise the call path rather than to recommend well.
 
 # Interfaces
 
-| Symbol | Purpose |
+| RPC | Purpose |
 | --- | --- |
-| `RecommendationService` | gRPC servicer implementation. |
-| `initStackdriverProfiling` | Optional profiler setup. |
-| `getJSONLogger` | JSON logger factory. |
+| `ListRecommendations` | Product ids to show alongside the current one. |
 
 # Dependencies
 
-Recommendation implements [Storefront gRPC API](../apis/storefront-grpc-api.md). It is called by [Frontend Service](frontend.md) and returns IDs that the frontend resolves through [Product Catalog Service](productcatalogservice.md). Co-change shows very strong historical coupling with [Email Service](emailservice.md), mostly through shared Python dependency management.
+Calls [Product Catalog Service](productcatalogservice.md) to learn what products exist,
+which makes it the only backend that is itself a client of another backend.
+Called by [Frontend](frontend.md) over the
+[storefront gRPC contract](../apis/storefront-grpc-api.md).
+
+It changes with [Email Service](emailservice.md) in 93% of its commits at lift 5.4 —
+a shared Python dependency set, not a shared code path.
 
 # Gotchas
 
-* Trace propagation was added to recommendation with frontend, checkout, currency, and product catalog; gRPC instrumentation is part of the cross-service trace contract (`1c8abe20`).
-* Python dependency and base image security updates commonly span this service and email/loadgenerator (`21b5bd60`, `61c019bc`).
+**Trace context is propagated unconditionally, by design.** `1c8abe20` removed the environment-variable gate so a service mesh or another process can inject context and have it survive the hop. The stated reason is that a span created upstream appears orphaned if this service drops the headers. The same commit deliberately leaves propagation out of leaf services that make no downstream calls.
+
+**Platform support is a cross-cutting change, not a per-service one.** arm64 support was added, reverted wholesale (`ed7b9419`, 13 files: every service Dockerfile plus `skaffold.yaml`), and later reapplied (`ccfb5908`). A base-image or platform change that touches one Dockerfile almost certainly has to touch all of them and the build config together, or the release does not hold.
 
 # Citations
 
-1. `1c8abe20` - Propagate trace context always (#1345).
-2. `21b5bd60` - Python container images upgrade to latest minor version (security upgrade) (#2233).
-3. `61c019bc` - chore(deps): update dependency certifi to v2022.12.7 [security] (#1371).
+1. `1c8abe20` — Propagate trace context always (#1345).
+2. `ed7b9419` — Revert "Add support for arm64 (#2589)".
+3. `ccfb5908` — Reapply "Add support for arm64 (#2589)".

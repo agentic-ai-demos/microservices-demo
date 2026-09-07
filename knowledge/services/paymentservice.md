@@ -1,48 +1,44 @@
 ---
 type: Service
 title: Payment Service
-description: The Node.js payment service mock-validates cards and returns transaction IDs.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/paymentservice/server.js
-tags: [service, nodejs, grpc, payment]
+description: Node service that validates a card and returns a simulated transaction id. It charges nothing.
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/paymentservice
+tags: [nodejs, payment, leaf]
 timestamp: 2026-09-03T15:39:39-04:00
 source_files:
-  - src/paymentservice/server.js
-  - src/paymentservice/charge.js
-  - src/paymentservice/index.js
-  - src/paymentservice/package.json
-  - src/paymentservice/package-lock.json
-  - src/paymentservice/Dockerfile
-generated_by: catalogify/0.7.0
+  - src/paymentservice
+generated_by: catalogify/0.8.0
 open_questions:
-  - "Are accepted card brands intentionally limited to Visa and Mastercard for demo UX, or should tests treat that as business policy?"
+  - "Card validation rejects some inputs. Are the rejection reasons a contract the frontend renders, or internal?"
+  - "Is `Charge` safe to retry, given checkout has no compensating action after it?"
 ---
-
 # Responsibilities
 
-Payment service implements the `Charge` RPC and delegates validation/mock charging to `charge.js`. It validates card number, accepted brand, and expiration date, then returns a generated transaction ID instead of integrating with a real payment processor.
+Validates the card number, expiry and type, then returns a generated transaction id. No money moves and no external processor is contacted. It is the seam where a real payment provider would go.
 
 # Interfaces
 
-| Symbol | Purpose |
+| RPC | Purpose |
 | --- | --- |
-| `HipsterShopServer` | gRPC server wrapper. |
-| `charge` | Validates and mock-charges a request. |
-| `CreditCardError` | Base error mapped to invalid-argument behavior. |
-| `InvalidCreditCard` | Raised for invalid card details. |
-| `UnacceptedCreditCard` | Raised for unsupported card brands. |
-| `ExpiredCreditCard` | Raised for expired cards. |
+| `Charge` | Validate the card and return a transaction id. |
 
 # Dependencies
 
-Payment implements [Storefront gRPC API](../apis/storefront-grpc-api.md) and is called by [Checkout Service](checkoutservice.md). It shares Node.js gRPC and observability dependency maintenance with [Currency Service](currencyservice.md).
+A leaf, and deliberately the deepest one: it calls nothing and nothing calls it except
+[Checkout Service](checkoutservice.md), over the
+[storefront gRPC contract](../apis/storefront-grpc-api.md).
+
+It changes with [Currency Service](currencyservice.md) in 88% of its commits at lift 7.1
+because they share a Node dependency set, not because they share a code path.
 
 # Gotchas
 
-* Several payment dependencies have security-tagged updates, including `uuid`, `@grpc/grpc-js`, and OpenTelemetry; lockfile changes here are operationally significant, not noise (`5096a85b`, `01b3dbc0`, `1ea14802`).
-* `charge.js` logs card type and last four digits, so logging changes should avoid expanding sensitive payment data exposure.
+**Platform support is a cross-cutting change, not a per-service one.** arm64 support was added, reverted wholesale (`ed7b9419`, 13 files: every service Dockerfile plus `skaffold.yaml`), and later reapplied (`ccfb5908`). A base-image or platform change that touches one Dockerfile almost certainly has to touch all of them and the build config together, or the release does not hold.
+
+This service is one of the leaves that deliberately does **not** propagate trace context, because it makes no downstream calls, a decision recorded in the trace-context change described on
+[Checkout Service](checkoutservice.md).
 
 # Citations
 
-1. `5096a85b` - fix(deps): update dependency uuid to v14 [security] (#3332).
-2. `01b3dbc0` - fix(deps): update dependency @grpc/grpc-js to v1.14.4 [security] (#3388).
-3. `1ea14802` - fix(deps): update dependency @opentelemetry/sdk-node to v0.217.0 [security] (#3357).
+1. `ed7b9419` — Revert "Add support for arm64 (#2589)".
+2. `ccfb5908` — Reapply "Add support for arm64 (#2589)".

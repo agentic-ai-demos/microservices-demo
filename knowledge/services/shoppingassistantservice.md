@@ -1,39 +1,46 @@
 ---
 type: Service
 title: Shopping Assistant Service
-description: The Python shopping assistant accepts image input and calls a Gemini-backed recommendation path.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/shoppingassistantservice/shoppingassistantservice.py
-tags: [service, python, flask, ai]
+description: Python Flask service answering shopping questions with an LLM, reached over HTTP rather than gRPC.
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/shoppingassistantservice
+tags: [python, flask, llm, http, optional]
 timestamp: 2026-08-24T16:44:54-04:00
 source_files:
-  - src/shoppingassistantservice/shoppingassistantservice.py
-  - src/shoppingassistantservice/requirements.txt
-  - src/shoppingassistantservice/Dockerfile
-generated_by: catalogify/0.7.0
+  - src/shoppingassistantservice
+generated_by: catalogify/0.8.0
 open_questions:
-  - "Which Gemini model and safety settings are expected for deployments, and are they intentionally configured outside this repository?"
+  - "Which external model and vector store is this expected to run against, and who holds those credentials?"
+  - "Is the storefront required to degrade gracefully when the assistant is not deployed?"
 ---
-
 # Responsibilities
 
-Shopping assistant is an optional Flask service for image-based product suggestions. It is not part of the default Helm chart and is enabled through Kustomize components that add the service to the storefront experience.
+The one service outside the gRPC contract. It exposes a single HTTP POST endpoint and answers a free-text shopping question using an LLM and a vector store. It is optional: the storefront works without it, and the deployment wires it in only when configured.
 
 # Interfaces
 
+| Endpoint | Purpose |
+| --- | --- |
+| `/` | POST — answer one shopping question. |
+
 | Symbol | Purpose |
 | --- | --- |
-| `create_app` | Constructs the Flask app and POST route. |
+| `create_app` | Flask application factory. |
+| `talkToGemini` | The single request handler. |
 
 # Dependencies
 
-Shopping assistant is surfaced through [Frontend Service](frontend.md) assistant handlers and deployed by [Kustomize Variants](../operations/kustomize-variants.md). It depends on Python packages for image and Google AI interactions and co-changes with [Load Generator](loadgenerator.md), [Email Service](emailservice.md), and [Recommendation Service](recommendationservice.md) mostly through shared Python maintenance.
+Reached by [Frontend](frontend.md) over plain HTTP, not the
+[storefront gRPC contract](../apis/storefront-grpc-api.md). It depends on external LLM and
+vector-store services configured at deploy time, not on anything in this repository.
 
 # Gotchas
 
-* The service has security-tagged dependency updates for Flask and Pillow, so image upload and web framework dependencies need active maintenance (`26d1d1a0`, `035dcbfb`).
-* Helm currently marks this service as unavailable, so enabling it is a Kustomize path unless the chart is extended.
+**Platform support is a cross-cutting change, not a per-service one.** arm64 support was added, reverted wholesale (`ed7b9419`, 13 files: every service Dockerfile plus `skaffold.yaml`), and later reapplied (`ccfb5908`). A base-image or platform change that touches one Dockerfile almost certainly has to touch all of them and the build config together, or the release does not hold.
+
+Its Dockerfile also carried legacy `ENV` syntax that had to be corrected (`0a09588e`) — a reminder that this service is newer than the rest and does not always follow their conventions.
 
 # Citations
 
-1. `26d1d1a0` - chore(deps): update dependency flask to v3.1.1 [security] (#2978).
-2. `035dcbfb` - chore(deps): update dependency pillow to v10.3.0 [security] (#2470).
+1. `ed7b9419` — Revert "Add support for arm64 (#2589)".
+2. `ccfb5908` — Reapply "Add support for arm64 (#2589)".
+3. `0a09588e` — fix legacy ENV syntax in Dockerfile (#3341).

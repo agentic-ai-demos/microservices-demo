@@ -4,20 +4,20 @@ okf_version: "0.1"
 
 # Architecture
 
-* [architecture/](architecture/) - System-level references for how Online Boutique is assembled.
+* [architecture/](architecture/) - System overview and the invariants that cross every service.
 
 # Services
 
-* [services/](services/) - Deployable microservices that implement the storefront, cart, checkout, recommendations, ads, payments, shipping, email, and load generation.
+* [services/](services/) - The twelve deployable units.
 
 # APIs
 
-* [apis/](apis/) - Shared gRPC contracts used between services.
+* [apis/](apis/) - The contract they all speak.
 
 # Data
 
-* [data/](data/) - Data files and persisted schemas owned by the repository.
+* [data/](data/) - What the storefront sells.
 
 # Operations
 
-* [operations/](operations/) - Build, deployment, infrastructure, and CI/CD artifacts.
+* [operations/](operations/) - How it is built, configured and deployed.

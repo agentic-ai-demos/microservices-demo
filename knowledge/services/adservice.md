@@ -1,41 +1,40 @@
 ---
 type: Service
 title: Ad Service
-description: The Java ad service returns contextual text ads based on page context keys.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/adservice/src/main/java/hipstershop/AdService.java
-tags: [service, java, grpc, ads]
-timestamp: 2026-09-03T15:38:03-04:00
+description: Java service returning contextual ads for a set of category keywords.
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/adservice
+tags: [java, ads, grpc, jvm]
+timestamp: 2026-09-03T15:39:57-04:00
 source_files:
-  - src/adservice/src/main/java/hipstershop/AdService.java
-  - src/adservice/src/main/java/hipstershop/AdServiceClient.java
-  - src/adservice/build.gradle
-  - src/adservice/Dockerfile
-generated_by: catalogify/0.7.0
+  - src/adservice
+generated_by: catalogify/0.8.0
 open_questions:
-  - "Are ad context keys intended to be a stable product-category contract with the frontend, or only sample data?"
+  - "Is the random-ad fallback a product decision the frontend relies on, or a placeholder?"
+  - "Who owns the JVM base image and Gradle toolchain upgrades, given no other service shares them?"
 ---
-
 # Responsibilities
 
-Ad service implements contextual ad lookup for frontend pages. The service maps request context keys to predefined ads and falls back to generic ads when no context match is available.
+Serves ads keyed by product category, falling back to random ads when no category matches. It is the only JVM service in the repository, which makes its build and base image different from every other.
 
 # Interfaces
 
-| Symbol | Purpose |
+| RPC | Purpose |
 | --- | --- |
-| `AdService` | Java gRPC server implementation and ad lookup logic. |
-| `AdServiceClient` | Standalone client for exercising the ad RPC. |
-| `main` | Starts either server or client entry points. |
+| `GetAds` | Ads for the given context keys, with a random fallback. |
 
 # Dependencies
 
-Ad implements [Storefront gRPC API](../apis/storefront-grpc-api.md) and is called by [Frontend Service](frontend.md), which derives context keys from product/category pages. Deployment and resource settings are maintained in [Kubernetes Manifests](../operations/kubernetes-manifests.md), [Kustomize Variants](../operations/kustomize-variants.md), and [Helm Chart](../operations/helm-chart.md).
+A leaf: it calls nothing. Called by [Frontend](frontend.md) over the
+[storefront gRPC contract](../apis/storefront-grpc-api.md).
+
+Being the only JVM service, it shares a dependency ecosystem with nothing else here, and its
+co-change lift against the other services sits near 1 — it moves on its own schedule.
 
 # Gotchas
 
-* Gradle and Java runtime churn is high in history; treat dependency updates as part of regular service maintenance rather than a rare event.
-* Docker platform support was reverted across all service images, including the Java image (`ed7b9419`).
+**Platform support is a cross-cutting change, not a per-service one.** arm64 support was added, reverted wholesale (`ed7b9419`, 13 files: every service Dockerfile plus `skaffold.yaml`), and later reapplied (`ccfb5908`). A base-image or platform change that touches one Dockerfile almost certainly has to touch all of them and the build config together, or the release does not hold.
 
 # Citations
 
-1. `ed7b9419` - Revert "Add support for arm64 (#2589)".
+1. `ed7b9419` — Revert "Add support for arm64 (#2589)".
+2. `ccfb5908` — Reapply "Add support for arm64 (#2589)".

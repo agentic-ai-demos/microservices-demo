@@ -1,63 +1,56 @@
 ---
 type: Service
-title: Frontend Service
-description: The Go frontend serves the web UI and translates browser workflows into backend gRPC calls.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/frontend/main.go
-tags: [service, go, http, grpc, storefront]
+title: Frontend
+description: Go HTTP server that renders the storefront and fans every page out to the backing gRPC services.
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/frontend
+tags: [http, storefront, grpc-client, session]
 timestamp: 2026-09-03T15:38:37-04:00
 source_files:
-  - src/frontend/main.go
-  - src/frontend/handlers.go
-  - src/frontend/rpc.go
-  - src/frontend/middleware.go
-  - src/frontend/Dockerfile
-generated_by: catalogify/0.7.0
+  - src/frontend
+generated_by: catalogify/0.8.0
 open_questions:
-  - "Is the 100 ms timeout in `getAd` a user-facing latency budget or a best-effort implementation detail?"
+  - "Is the session cookie the only client state, or do any handlers assume server-side affinity?"
+  - "When a downstream service is unavailable, is the page degraded or failed outright, and which behaviour is contractual?"
 ---
-
 # Responsibilities
 
-The frontend owns browser-facing HTTP routes, template rendering, session cookies, currency selection, and conversion from form submissions into backend gRPC requests. It is the only public application service in the default Kubernetes manifests; everything after the browser request is delegated to typed gRPC clients.
+The only service exposed to a browser. It renders server-side HTML templates and, for each page, fans out to the gRPC backends: catalog and ads for the home page, cart and currency for the cart, shipping for a quote, checkout to place an order. It holds no state of its own beyond a session cookie.
 
 # Interfaces
 
-| Symbol | Purpose |
+| Route | Method and purpose |
 | --- | --- |
-| `homeHandler` | Renders the home page with products, cart count, currencies, recommendations, and ads. |
-| `productHandler` | Renders the product details page for a catalog item. |
-| `addToCartHandler` | Validates form input and calls cart insertion. |
-| `viewCartHandler` | Renders cart contents and localized totals. |
-| `placeOrderHandler` | Accepts checkout form data and calls checkout. |
-| `assistantHandler` | Renders the shopping assistant view. |
-| `chatBotHandler` | Proxies assistant prompts and product image data. |
-| `setCurrencyHandler` | Persists selected currency in a cookie. |
-| `getProducts` | Calls product catalog `ListProducts`. |
-| `getCart` | Calls cart `GetCart`. |
-| `getShippingQuote` | Calls shipping and then localizes the quote. |
-| `getRecommendations` | Calls recommendation and resolves returned product IDs. |
-| `getAd` | Calls ad service with a short timeout. |
+| `/` | GET — home page: product list, ads, cart size, currency. |
+| `/product/{id}` | GET — product detail with recommendations. |
+| `/cart` | GET to view, POST to add an item. |
+| `/cart/empty` | POST — clear the session cart. |
+| `/cart/checkout` | POST — hand off to the checkout service. |
+| `/setCurrency` | POST — persist a currency choice in a cookie. |
+| `/assistant` | GET — shopping assistant page. |
 
 # Dependencies
 
-The frontend depends on [Storefront gRPC API](../apis/storefront-grpc-api.md) clients for product catalog, cart, currency, recommendation, shipping, ad, and checkout. It reads backend addresses from environment variables set by [Kubernetes Manifests](../operations/kubernetes-manifests.md), [Kustomize Variants](../operations/kustomize-variants.md), or [Helm Chart](../operations/helm-chart.md).
+Derived from the gRPC clients constructed in `rpc.go` and `handlers.go`, and from the
+`*_SERVICE_ADDR` variables the deployment injects. It calls, and is called by nothing:
 
-Co-change with [Checkout Service](checkoutservice.md), [Product Catalog Service](productcatalogservice.md), and [Shipping Service](shippingservice.md) has high lift because frontend pages expose the same browse/cart/checkout contracts those services implement.
+* [Product Catalog Service](productcatalogservice.md) — listing and detail
+* [Cart Service](cartservice.md) — read and mutate the session cart
+* [Currency Service](currencyservice.md) — convert displayed prices
+* [Recommendation Service](recommendationservice.md) — related products
+* [Ad Service](adservice.md) — contextual ads
+* [Shipping Service](shippingservice.md) — quote on the cart page
+* [Checkout Service](checkoutservice.md) — place the order
+
+All seven speak the [storefront gRPC contract](../apis/storefront-grpc-api.md).
 
 # Gotchas
 
-* Trace context propagation was made explicit across the frontend and backend services; keep client and server gRPC instrumentation together when changing request plumbing (`1c8abe20`).
-* Listen-address refactoring was reverted with Kubernetes manifest changes, so endpoint binding changes need to be checked against service/deployment wiring (`b4862517`).
+**Trace context is propagated unconditionally, by design.** `1c8abe20` removed the environment-variable gate so a service mesh or another process can inject context and have it survive the hop. The stated reason is that a span created upstream appears orphaned if this service drops the headers. The same commit deliberately leaves propagation out of leaf services that make no downstream calls.
 
-# Key files
-
-| Path | Role |
-| --- | --- |
-| `src/frontend/handlers.go` | HTTP route handlers and template payload assembly. |
-| `src/frontend/rpc.go` | gRPC client calls to backend services. |
-| `src/frontend/main.go` | Server startup, environment mapping, tracing, profiling, and route registration. |
+**Platform support is a cross-cutting change, not a per-service one.** arm64 support was added, reverted wholesale (`ed7b9419`, 13 files: every service Dockerfile plus `skaffold.yaml`), and later reapplied (`ccfb5908`). A base-image or platform change that touches one Dockerfile almost certainly has to touch all of them and the build config together, or the release does not hold.
 
 # Citations
 
-1. `1c8abe20` - Propagate trace context always (#1345).
-2. `b4862517` - Revert "frontend: use LISTEN_ADDR, refactor Listen code".
+1. `1c8abe20` — Propagate trace context always (#1345).
+2. `ed7b9419` — Revert "Add support for arm64 (#2589)".
+3. `ccfb5908` — Reapply "Add support for arm64 (#2589)".

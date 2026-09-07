@@ -1,53 +1,36 @@
 ---
 type: Configuration
 title: Kubernetes Manifests
-description: The baseline manifests define Deployments, Services, service accounts, probes, resources, and security context for the demo application.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/kubernetes-manifests/kustomization.yaml
-tags: [kubernetes, manifests, deployment]
+description: Plain Deployment and Service manifests, one pair per service, wiring addresses through environment variables.
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/kubernetes-manifests
+tags: [kubernetes, deployment, manifests]
 timestamp: 2026-09-03T15:37:52-04:00
 source_files:
-  - kubernetes-manifests/kustomization.yaml
-  - kubernetes-manifests/frontend.yaml
-  - kubernetes-manifests/cartservice.yaml
-  - kubernetes-manifests/checkoutservice.yaml
-  - kubernetes-manifests/currencyservice.yaml
-  - kubernetes-manifests/emailservice.yaml
-  - kubernetes-manifests/loadgenerator.yaml
-  - kubernetes-manifests/paymentservice.yaml
-  - kubernetes-manifests/productcatalogservice.yaml
-  - kubernetes-manifests/recommendationservice.yaml
-  - kubernetes-manifests/shippingservice.yaml
-generated_by: catalogify/0.7.0
-open_questions:
-  - "Are Kubernetes resource requests/limits tuned to a target cluster size, or are they only demo-safe defaults?"
+  - kubernetes-manifests
+generated_by: catalogify/0.8.0
 ---
-
 # Responsibilities
 
-The baseline manifests are the direct `kubectl apply` deployment for Online Boutique. They define the service graph, container images, environment variables, probes, service accounts, Redis cart storage, frontend external exposure, and load generator startup checks.
+Plain Deployment and Service manifests, one pair per service, wiring addresses through environment variables.
 
 # Interfaces
 
-| Symbol | Purpose |
+| Manifest | Purpose |
 | --- | --- |
-| `kustomization.yaml` | Lists baseline resources and image substitutions. |
-| `frontend.yaml` | Public frontend Deployment and Service. |
-| `cartservice.yaml` | Cart service and cart storage wiring. |
-| `loadgenerator.yaml` | Locust Deployment and frontend readiness check. |
-| `redis.yaml` | In-cluster Redis cart backend. |
+| `frontend.yaml` | The browser entry point and its backend addresses. |
+| `checkoutservice.yaml` | The orchestrator and its six downstream addresses. |
+| `cartservice.yaml` | Cart plus its store address. |
+| `redis.yaml` | Default cart backing store. |
 
 # Dependencies
 
-These manifests instantiate every concept in [Services](../services/) and consume image names produced by [Skaffold and Cloud Build](skaffold-cloudbuild.md). [Kustomize Variants](kustomize-variants.md), [Helm Chart](helm-chart.md), and [Terraform GKE Deployment](terraform-gke-deployment.md) either reuse or mirror this baseline shape.
+The service graph is expressed here as `*_SERVICE_ADDR` environment variables, so this
+directory is the deployed equivalent of the
+[architecture overview](../architecture/overview.md). Change a service name and this is where
+the rename has to land.
 
-# Gotchas
+# Key files
 
-* Security context hardening is an explicit deployment invariant; new containers and init containers should follow it rather than silently running with weaker defaults (`b3debab5`, `9052f4c3`).
-* Termination grace was added to services in early Kubernetes history, so probe and shutdown changes should account for gRPC server draining behavior (`77fac954`, `b4685dca`).
-
-# Citations
-
-1. `b3debab5` - Harden containers with securityContext (#887).
-2. `9052f4c3` - loadgenerator - securityContext for initContainer (#1046).
-3. `77fac954` - k8s: add terminationGracePeriodSeconds to some.
-4. `b4685dca` - k8s: add termination grace to recommendationservice.
+Addresses are injected, not discovered. A service added to the code without a matching
+`*_SERVICE_ADDR` entry here will build, deploy and fail at the first call. No commit records
+this as a past incident; it is read off the manifests.

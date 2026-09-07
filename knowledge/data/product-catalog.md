@@ -1,51 +1,42 @@
 ---
 type: Data Model
-title: Product Catalog Data
-description: The product catalog service ships a static JSON product set that must match the protobuf `Product` shape.
+title: Product Catalog
+description: The product records the storefront sells, served from a JSON file or a relational database.
 resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/productcatalogservice/products.json
-tags: [catalog, json, products]
-timestamp: 2026-09-03T15:38:37-04:00
+tags: [data, catalog, json, alloydb]
+timestamp: 2021-09-23T16:56:59-04:00
 source_files:
   - src/productcatalogservice/products.json
-  - src/productcatalogservice/catalog_loader.go
-  - src/productcatalogservice/go.mod
-  - protos/demo.proto
-generated_by: catalogify/0.7.0
+  - src/productcatalogservice/product_catalog.go
+generated_by: catalogify/0.8.0
 open_questions:
-  - "Is `products.json` intended to remain the default source of truth when AlloyDB catalog loading is enabled, or only a local/demo fallback?"
+  - "When the database backend is used, is products.json still authoritative, or does the database win?"
+  - "Is the product id format a contract other services may parse, or opaque?"
 ---
-
 # Schema
 
-| Field | Source | Notes |
-| --- | --- | --- |
-| `id` | `Product.id` | Stable product identifier used by cart, frontend routes, and recommendations. |
-| `name` | `Product.name` | Display name. |
-| `description` | `Product.description` | Display copy and search input. |
-| `picture` | `Product.picture` | Image path consumed by the frontend. |
-| `price_usd` | `Product.price_usd` | Base price stored as protobuf `Money`. |
-| `categories` | `Product.categories` | Related-product and ad context hints. |
-
-# Responsibilities
-
-The product catalog data is read by [Product Catalog Service](../services/productcatalogservice.md), then surfaced to the frontend and recommendation flow through [Storefront gRPC API](../apis/storefront-grpc-api.md). `catalog_loader.go` can load from the local JSON file or from AlloyDB-related paths depending on environment configuration.
-
-# Interfaces
-
-| Symbol | Purpose |
+| Field | Meaning |
 | --- | --- |
-| `loadCatalog` | Chooses the configured catalog loading source. |
-| `loadCatalogFromLocalFile` | Parses `products.json` into protobuf product records. |
-| `loadCatalogFromAlloyDB` | Loads catalog records from an AlloyDB connection. |
+| `id` | Product identifier, used by cart, recommendations and checkout. |
+| `name`, `description` | Display text; both are searched by `SearchProducts`. |
+| `picture` | Static asset path served by the frontend. |
+| `priceUsd` | Money as currency code, `units` and `nanos`. |
+| `categories` | Drives ad selection and recommendations. |
 
 # Dependencies
 
-This data concept is owned by [Product Catalog Service](../services/productcatalogservice.md) and shared indirectly with [Frontend Service](../services/frontend.md), [Checkout Service](../services/checkoutservice.md), and [Recommendation Service](../services/recommendationservice.md) through product IDs and `Product` messages.
+Read by [Product Catalog Service](../services/productcatalogservice.md), which is the only
+service that touches the store directly. Everything else reaches it over the
+[storefront gRPC contract](../apis/storefront-grpc-api.md).
 
 # Gotchas
 
-Product catalog service history includes a security update to the `pgx` dependency, so AlloyDB-backed catalog loading inherits database client maintenance obligations even though the default data file is static (`1db7e998`).
+Prices are `units` plus `nanos`, never floats. Any new consumer that converts to a float for
+arithmetic will disagree with the checkout total eventually.
+
+The catalog is small and read on every page. `48edfe97` fixed `GetProduct` re-parsing it three
+times per loop iteration, which is the shape of mistake this data model invites.
 
 # Citations
 
-1. `1db7e998` - fix(deps): update module github.com/jackc/pgx/v5 to v5.9.2 [security] (#3317).
+1. `48edfe97` — avoid redundant parseCatalog calls in GetProduct (#3280).

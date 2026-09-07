@@ -1,47 +1,46 @@
 ---
 type: Service
 title: Shipping Service
-description: The Go shipping service estimates shipping cost and produces mock shipment tracking IDs.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/shippingservice/main.go
-tags: [service, go, grpc, shipping]
+description: Go service returning shipping quotes and issuing tracking ids. Both values are simulated.
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/shippingservice
+tags: [go, shipping, quote, tracking]
 timestamp: 2026-09-03T15:42:22-04:00
 source_files:
-  - src/shippingservice/main.go
-  - src/shippingservice/quote.go
-  - src/shippingservice/tracker.go
-  - src/shippingservice/go.mod
-  - src/shippingservice/Dockerfile
-generated_by: catalogify/0.7.0
+  - src/shippingservice
+generated_by: catalogify/0.8.0
 open_questions:
-  - "Is the shipping quote formula deliberately stable for demos and screenshots, or may it change with no compatibility concern?"
+  - "Is the quote formula meant to be plausible or merely non-zero? A caller writing assertions needs to know."
+  - "Is the tracking id required to be unique, or only well-formed?"
 ---
-
 # Responsibilities
 
-Shipping service implements quote estimation and mock shipment creation for checkout. It calculates `Money` from cart item count and produces tracking identifiers without calling an external carrier.
+Answers a quote for a cart and returns a tracking id when an order ships. Both are computed, not fetched from a carrier: this is a demo boundary standing in for a real integration.
 
 # Interfaces
 
-| Symbol | Purpose |
+| RPC | Purpose |
 | --- | --- |
-| `GetQuote` | Implements quote estimation RPC. |
-| `ShipOrder` | Implements mock shipping RPC. |
-| `Quote` | Internal quote representation. |
-| `CreateQuoteFromCount` | Creates a quote from item count. |
-| `CreateQuoteFromFloat` | Converts float values into quote units and nanos. |
-| `CreateTrackingId` | Builds a tracking ID from random components and salt. |
+| `GetQuote` | Price a shipment for the items in the cart. |
+| `ShipOrder` | Issue a tracking id for a placed order. |
 
 # Dependencies
 
-Shipping implements [Storefront gRPC API](../apis/storefront-grpc-api.md) and is called by [Frontend Service](frontend.md) for cart quotes and [Checkout Service](checkoutservice.md) during order placement. It co-changes strongly with frontend, checkout, and product catalog because shipping totals appear in cart and order flows.
+A leaf: it calls nothing. Called by [Frontend](frontend.md) for the cart-page quote and by
+[Checkout Service](checkoutservice.md) during the order flow, over the
+[storefront gRPC contract](../apis/storefront-grpc-api.md).
 
 # Gotchas
 
-* gRPC dependency updates have included security fixes in shipping; keep module updates and generated gRPC compatibility together (`b23a4b0b`, `1a098aac`).
-* Multi-architecture Docker changes were reverted across all services, including shipping (`ed7b9419`).
+**The quote arithmetic was wrong, and the randomness was seeded by hand.** `fc3a1f72` fixed
+`GetQuote` to use the actual item count rather than a placeholder, and removed a manual
+`rand.Seed` call that has been deprecated since Go 1.20 — the global generator seeds itself now,
+so the seeded flag was dead weight pretending to be determinism. If you need reproducible
+quotes for a test, inject a source rather than reinstating global seeding.
+
+**Platform support is a cross-cutting change, not a per-service one.** arm64 support was added, reverted wholesale (`ed7b9419`, 13 files: every service Dockerfile plus `skaffold.yaml`), and later reapplied (`ccfb5908`). A base-image or platform change that touches one Dockerfile almost certainly has to touch all of them and the build config together, or the release does not hold.
 
 # Citations
 
-1. `b23a4b0b` - Update module google.golang.org/grpc to v1.83.1 [SECURITY] (#3505).
-2. `1a098aac` - fix(deps): update module golang.org/x/net to v0.38.0 [security] (#2943).
-3. `ed7b9419` - Revert "Add support for arm64 (#2589)".
+1. `fc3a1f72` — clean up shippingservice: remove deprecated API, fix quote logic, improve tests (#3276).
+2. `ed7b9419` — Revert "Add support for arm64 (#2589)".
+3. `ccfb5908` — Reapply "Add support for arm64 (#2589)".

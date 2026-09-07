@@ -1,58 +1,52 @@
 ---
 type: Service
 title: Cart Service
-description: The C# cart service stores per-user cart items behind the CartService gRPC API.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/cartservice/src/services/CartService.cs
-tags: [service, csharp, grpc, cart, storage]
-timestamp: 2026-09-03T15:38:37-04:00
+description: "C# service holding per-session carts behind a pluggable store: Redis, AlloyDB or Spanner."
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/cartservice
+tags: [csharp, cart, redis, alloydb, spanner]
+timestamp: 2026-08-24T16:45:04-04:00
 source_files:
-  - src/cartservice/src/services/CartService.cs
-  - src/cartservice/src/cartstore/ICartStore.cs
-  - src/cartservice/src/cartstore/RedisCartStore.cs
-  - src/cartservice/src/cartstore/SpannerCartStore.cs
-  - src/cartservice/src/cartstore/AlloyDBCartStore.cs
-  - src/cartservice/src/Startup.cs
-  - src/cartservice/src/Dockerfile
-  - kubernetes-manifests/cartservice.yaml
-generated_by: catalogify/0.7.0
+  - src/cartservice
+generated_by: catalogify/0.8.0
 open_questions:
-  - "Which cart backends are considered supported production-like paths: Redis only, or Redis plus Spanner and AlloyDB?"
+  - "Are the three stores expected to be behaviourally identical, or is Redis allowed weaker durability?"
+  - "Is cart expiry a store concern or a service concern? No TTL is visible at this layer."
 ---
-
 # Responsibilities
 
-Cart service implements the cart portion of the shared gRPC contract and delegates persistence behind `ICartStore`. The repository includes Redis, Spanner, and AlloyDB cart store implementations, allowing deployment components to swap storage behavior while keeping the RPC interface stable.
+Keeps the cart for a session id. The store is chosen at startup behind `ICartStore`, with Redis, AlloyDB and Spanner implementations, so the same service can run against an in-memory-ish cache or a managed database without the callers noticing.
 
 # Interfaces
 
-| Symbol | Purpose |
+| RPC | Purpose |
 | --- | --- |
-| `CartService` | gRPC service implementation. |
-| `AddItem` | Adds a product and quantity to a user's cart. |
-| `GetCart` | Returns the current cart for a user. |
-| `EmptyCart` | Clears a user's cart. |
-| `ICartStore` | Storage abstraction used by the gRPC service. |
-| `RedisCartStore` | Redis-backed implementation. |
-| `SpannerCartStore` | Spanner-backed implementation. |
-| `AlloyDBCartStore` | AlloyDB-backed implementation. |
-| `HealthCheckService` | gRPC health check implementation. |
+| `AddItem` | Append an item to a session cart. |
+| `GetCart` | Read the whole cart. |
+| `EmptyCart` | Clear it, called by checkout after a successful order. |
+
+| Contract | Purpose |
+| --- | --- |
+| `ICartStore` | The seam every backend implements; pick one at startup. |
 
 # Dependencies
 
-Cart depends on [Storefront gRPC API](../apis/storefront-grpc-api.md) and on a storage backend configured by deployment manifests. It is called by [Frontend Service](frontend.md) for cart views and mutations and by [Checkout Service](checkoutservice.md) during order placement.
+Depends on no other service in this repository — it is a leaf. Its dependency is
+its configured store.
+
+Called by [Frontend](frontend.md) and [Checkout Service](checkoutservice.md) over the
+[storefront gRPC contract](../apis/storefront-grpc-api.md).
 
 # Gotchas
 
-* Docker platform support was reverted across all services, including cart, so debug and release Dockerfiles need architecture changes together (`ed7b9419`).
+**The relational store had to be made idempotent, and had leaked credentials.** `dc88f8d8`
+reworked `AlloyDBCartStore.cs` to hide database credentials and to handle duplicate inserts.
+Adding an item is retried by callers, so a store backend that assumes a fresh row per call
+is wrong. Treat "add the same item twice" as the normal case in any new backend.
 
-# Key files
-
-| Path | Role |
-| --- | --- |
-| `src/cartservice/src/services/CartService.cs` | RPC implementation. |
-| `src/cartservice/src/cartstore/` | Persistence implementations. |
-| `src/cartservice/src/Startup.cs` | Dependency injection and backend selection. |
+**Platform support is a cross-cutting change, not a per-service one.** arm64 support was added, reverted wholesale (`ed7b9419`, 13 files: every service Dockerfile plus `skaffold.yaml`), and later reapplied (`ccfb5908`). A base-image or platform change that touches one Dockerfile almost certainly has to touch all of them and the build config together, or the release does not hold.
 
 # Citations
 
-1. `ed7b9419` - Revert "Add support for arm64 (#2589)".
+1. `dc88f8d8` — hide DB credentials and handle duplicate inserts when using AlloyDB (#3021).
+2. `ed7b9419` — Revert "Add support for arm64 (#2589)".
+3. `ccfb5908` — Reapply "Add support for arm64 (#2589)".

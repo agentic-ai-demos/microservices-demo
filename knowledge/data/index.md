@@ -1,3 +1,3 @@
 # Data
 
-* [Product Catalog Data](product-catalog.md) - The product catalog service ships a static JSON product set that must match the protobuf `Product` shape.
+* [Product Catalog](product-catalog.md) - The product records the storefront sells, served from a JSON file or a relational database.

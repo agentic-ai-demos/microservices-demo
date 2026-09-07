@@ -1,51 +1,34 @@
 ---
 type: Configuration
 title: Kustomize Variants
-description: Kustomize overlays and components compose optional deployment variants around the baseline manifests.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/kustomize/kustomization.yaml
-tags: [kustomize, kubernetes, variants]
+description: Overlays that switch the cart store, add service mesh support, or enable optional components.
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/kustomize
+tags: [kustomize, overlays, configuration]
 timestamp: 2026-09-03T17:10:06-04:00
 source_files:
-  - kustomize/kustomization.yaml
-  - kustomize/base/kustomization.yaml
-  - kustomize/README.md
-  - terraform/main.tf
-  - kustomize/components/google-cloud-operations/kustomization.yaml
-  - kustomize/components/shopping-assistant/kustomization.yaml
-  - kustomize/components/memorystore/kustomization.yaml
-  - kustomize/components/spanner/kustomization.yaml
-  - kustomize/components/network-policies/kustomization.yaml
-generated_by: catalogify/0.7.0
-open_questions:
-  - "Which Kustomize components are release-blocking variants versus examples maintained on a best-effort basis?"
+  - kustomize
+generated_by: catalogify/0.8.0
 ---
-
 # Responsibilities
 
-Kustomize provides composable deployment variants for the baseline application. Components add or alter observability, service mesh, cart database backends, image registry/tag rules, network policies, non-public frontend exposure, Cymbal branding, shared sessions, and the shopping assistant.
+Overlays that switch the cart store, add service mesh support, or enable optional components.
 
 # Interfaces
 
-| Symbol | Purpose |
+| Overlay group | Purpose |
 | --- | --- |
-| `kustomization.yaml` | Top-level composition entry point. |
-| `base/kustomization.yaml` | Baseline resources used by overlays. |
-| `components/google-cloud-operations/kustomization.yaml` | Observability component. |
-| `components/shopping-assistant/kustomization.yaml` | Optional AI assistant service wiring. |
-| `components/memorystore/kustomization.yaml` | External Redis/Memorystore cart backend variant. |
-| `components/spanner/kustomization.yaml` | Spanner cart backend variant. |
-| `components/network-policies/kustomization.yaml` | NetworkPolicy variant. |
+| `components/alloydb` | Swap the cart store to AlloyDB. |
+| `components/spanner` | Swap it to Spanner. |
+| `components/service-mesh-istio` | Run under Istio. |
+| `components/shopping-assistant` | Enable the optional LLM assistant. |
 
 # Dependencies
 
-Kustomize depends on [Kubernetes Manifests](kubernetes-manifests.md) and has historically co-changed with [Helm Chart](helm-chart.md), especially where both deployment systems expose the same observability and security features.
+Layered over [Kubernetes Manifests](kubernetes-manifests.md). The store overlays correspond
+to the `ICartStore` implementations described in [Cart Service](../services/cartservice.md).
 
-# Gotchas
+# Key files
 
-* Cloud Trace service naming had to be fixed across Helm templates and Kustomize operations components, so observability labels/env must remain consistent across deployment systems (`02015ee8`).
-* A rollback touched Kustomize cloud-ops sandbox files and Terraform together; cross-tool deployment variants can share failure modes even without direct imports (`30c62eb2`).
-
-# Citations
-
-1. `02015ee8` - fix: display service name in Cloud Trace (#2350).
-2. `30c62eb2` - fix: rollback customizations made in #1566 (#1573).
+The overlays are the only place the optional pieces are switched on, so a service that works
+in the base manifests may be absent entirely in a variant. Check which overlay a bug report
+came from before reproducing. Read off the overlay tree, not from history.

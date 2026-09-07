@@ -1,8 +1,7 @@
 # Operations
 
-* [Kubernetes Manifests](kubernetes-manifests.md) - The baseline manifests define Deployments, Services, service accounts, probes, resources, and security context for the demo application.
-* [Kustomize Variants](kustomize-variants.md) - Kustomize overlays and components compose optional deployment variants around the baseline manifests.
-* [Helm Chart](helm-chart.md) - The Helm chart parameterizes the application deployment for chart-based installation.
-* [Terraform GKE Deployment](terraform-gke-deployment.md) - Terraform provisions Google Cloud APIs, an Autopilot GKE cluster, optional Memorystore, and applies the manifests.
-* [Skaffold and Cloud Build](skaffold-cloudbuild.md) - Skaffold builds all service images and deploys manifests locally or through Cloud Build.
-* [GitHub Actions Pipelines](github-actions.md) - GitHub Actions validate code, manifests, Terraform, Helm, releases, and pull-request deployments.
+* [CI and Release](ci-and-release.md) - GitHub Actions workflows that build every service image, run checks, and cut releases.
+* [Helm Chart](helm-chart.md) - A parameterised chart covering the same topology, with security and mesh options.
+* [Kubernetes Manifests](kubernetes-manifests.md) - Plain Deployment and Service manifests, one pair per service, wiring addresses through environment variables.
+* [Kustomize Variants](kustomize-variants.md) - Overlays that switch the cart store, add service mesh support, or enable optional components.
+* [Terraform Deployment](terraform-deployment.md) - Provisions a GKE cluster and supporting Google Cloud resources for the storefront.

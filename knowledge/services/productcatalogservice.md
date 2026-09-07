@@ -1,56 +1,51 @@
 ---
 type: Service
 title: Product Catalog Service
-description: The Go product catalog service exposes product listing, lookup, and search over the repository catalog data.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/productcatalogservice/server.go
-tags: [service, go, grpc, catalog]
+description: Go service serving the product list, single products and search from a JSON catalog or a database.
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/productcatalogservice
+tags: [go, catalog, search, read-path]
 timestamp: 2026-09-03T15:38:37-04:00
 source_files:
-  - src/productcatalogservice/server.go
-  - src/productcatalogservice/product_catalog.go
-  - src/productcatalogservice/catalog_loader.go
-  - src/productcatalogservice/products.json
-  - src/productcatalogservice/go.mod
-  - src/productcatalogservice/Dockerfile
-generated_by: catalogify/0.7.0
+  - src/productcatalogservice
+generated_by: catalogify/0.8.0
 open_questions:
-  - "Is AlloyDB catalog loading intended to be feature-equivalent with local JSON loading for search and category behavior?"
+  - "Is the catalog reloaded on change, or only at startup? Callers may be caching against a stale generation."
+  - "Is `SearchProducts` expected to stay a linear scan, or is a real index intended?"
 ---
-
 # Responsibilities
 
-Product catalog service implements product listing, lookup, and substring search. It loads product data into memory from [Product Catalog Data](../data/product-catalog.md) and serves it over the product RPCs in [Storefront gRPC API](../apis/storefront-grpc-api.md).
+Reads the catalog and answers list, get and search. It is the read-hottest service in the system, sitting behind both the frontend home page and every checkout pricing step.
 
 # Interfaces
 
-| Symbol | Purpose |
+| RPC | Purpose |
 | --- | --- |
-| `ListProducts` | Returns all loaded catalog products. |
-| `GetProduct` | Returns one product by ID or a not-found error. |
-| `SearchProducts` | Searches products by query. |
-| `parseCatalog` | Reads the in-memory catalog payload. |
-| `loadCatalog` | Chooses the active catalog source. |
-| `loadCatalogFromLocalFile` | Parses `products.json`. |
-| `loadCatalogFromAlloyDB` | Loads catalog rows from AlloyDB. |
+| `ListProducts` | The whole catalog, used by the home page. |
+| `GetProduct` | One product by id. |
+| `SearchProducts` | Substring search over name and description. |
 
 # Dependencies
 
-The service depends on protobuf definitions from [Storefront gRPC API](../apis/storefront-grpc-api.md) and shares product IDs with [Frontend Service](frontend.md), [Checkout Service](checkoutservice.md), and [Recommendation Service](recommendationservice.md). Its optional AlloyDB path ties it to [Terraform GKE Deployment](../operations/terraform-gke-deployment.md) and Kustomize components for database-backed variants.
+A leaf: it calls nothing. Read by [Frontend](frontend.md),
+[Checkout Service](checkoutservice.md) and
+[Recommendation Service](recommendationservice.md) over the
+[storefront gRPC contract](../apis/storefront-grpc-api.md). The catalog itself is described in
+[Product Catalog data](../data/product-catalog.md).
 
 # Gotchas
 
-* OpenTelemetry trace propagation was changed in product catalog alongside frontend, checkout, currency, and recommendation; preserve both tracer provider setup and gRPC handlers when changing startup code (`1c8abe20`).
-* The AlloyDB loader brings `pgx` security maintenance into this otherwise static-catalog service (`1db7e998`).
+**The read path has been quietly quadratic before.** `48edfe97` found `GetProduct` calling
+`parseCatalog()` three times per loop iteration with no early return on match. Parsing is not
+free and this service is on every page load, so re-reading the catalog inside a loop is the
+mistake to watch for here.
 
-# Key files
+**Trace context is propagated unconditionally, by design.** `1c8abe20` removed the environment-variable gate so a service mesh or another process can inject context and have it survive the hop. The stated reason is that a span created upstream appears orphaned if this service drops the headers. The same commit deliberately leaves propagation out of leaf services that make no downstream calls.
 
-| Path | Role |
-| --- | --- |
-| `src/productcatalogservice/product_catalog.go` | Product RPC implementation. |
-| `src/productcatalogservice/catalog_loader.go` | Data loading paths. |
-| `src/productcatalogservice/products.json` | Default catalog data. |
+**Platform support is a cross-cutting change, not a per-service one.** arm64 support was added, reverted wholesale (`ed7b9419`, 13 files: every service Dockerfile plus `skaffold.yaml`), and later reapplied (`ccfb5908`). A base-image or platform change that touches one Dockerfile almost certainly has to touch all of them and the build config together, or the release does not hold.
 
 # Citations
 
-1. `1c8abe20` - Propagate trace context always (#1345).
-2. `1db7e998` - fix(deps): update module github.com/jackc/pgx/v5 to v5.9.2 [security] (#3317).
+1. `48edfe97` — avoid redundant parseCatalog calls in GetProduct (#3280).
+2. `1c8abe20` — Propagate trace context always (#1345).
+3. `ed7b9419` — Revert "Add support for arm64 (#2589)".
+4. `ccfb5908` — Reapply "Add support for arm64 (#2589)".

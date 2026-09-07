@@ -1,47 +1,47 @@
 ---
 type: Service
 title: Currency Service
-description: The Node.js currency service exposes supported currencies and currency conversion over gRPC.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/currencyservice/server.js
-tags: [service, nodejs, grpc, currency]
+description: Node service converting money between currencies from a static ECB rate table.
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/currencyservice
+tags: [nodejs, currency, conversion]
 timestamp: 2026-09-03T15:39:39-04:00
 source_files:
-  - src/currencyservice/server.js
-  - src/currencyservice/package.json
-  - src/currencyservice/package-lock.json
-  - src/currencyservice/Dockerfile
-generated_by: catalogify/0.7.0
+  - src/currencyservice
+generated_by: catalogify/0.8.0
 open_questions:
-  - "What freshness guarantee, if any, is expected for exchange-rate data fetched by `_getCurrencyData`?"
+  - "Money is passed as units plus nanos. Is rounding specified anywhere, or left to each caller?"
+  - "Are the checked-in rates expected to be refreshed, and by whom?"
 ---
-
 # Responsibilities
 
-Currency service lists supported currencies and converts `Money` values into a target code. It is a Node.js gRPC server with health checks, OpenTelemetry gRPC instrumentation, optional profiling, and a conversion path used by frontend and checkout totals.
+Converts a Money value between currencies and lists what is supported. Rates come from a checked-in table, so conversions are deterministic and offline.
 
 # Interfaces
 
-| Symbol | Purpose |
+| RPC | Purpose |
 | --- | --- |
-| `_loadProto` | Loads protobuf definitions for gRPC service registration. |
-| `_getCurrencyData` | Retrieves exchange-rate data. |
-| `_carry` | Normalizes fractional money units. |
-| `getSupportedCurrencies` | Implements supported currency listing. |
-| `convert` | Implements currency conversion. |
-| `check` | Implements gRPC health check. |
-| `main` | Starts the gRPC server. |
+| `GetSupportedCurrencies` | The currency codes the table covers. |
+| `Convert` | Convert one Money value into another currency. |
 
 # Dependencies
 
-Currency implements [Storefront gRPC API](../apis/storefront-grpc-api.md) and is called by [Frontend Service](frontend.md) and [Checkout Service](checkoutservice.md). It historically moves with [Payment Service](paymentservice.md) because both are Node.js gRPC services with shared dependency and observability updates.
+A leaf: it calls nothing. Called by [Frontend](frontend.md) to display prices and by
+[Checkout Service](checkoutservice.md) to price an order, over the
+[storefront gRPC contract](../apis/storefront-grpc-api.md).
+
+Co-change is worth reading carefully here. This service moves with
+[Payment Service](paymentservice.md) in 88% of its commits at lift 7.1, and the two share no
+call path at all. They share a Node dependency set, and the automated dependency updates touch
+both in one commit. The coupling is real but it is about the build, not the runtime.
 
 # Gotchas
 
-* Currency and payment have repeated shared security updates to `@grpc/grpc-js` and OpenTelemetry packages; keep Node gRPC dependency updates coordinated (`01b3dbc0`, `1ea14802`).
-* Trace propagation was explicitly added across this service and Go/Python peers; do not remove gRPC instrumentation while refactoring startup (`1c8abe20`).
+**Platform support is a cross-cutting change, not a per-service one.** arm64 support was added, reverted wholesale (`ed7b9419`, 13 files: every service Dockerfile plus `skaffold.yaml`), and later reapplied (`ccfb5908`). A base-image or platform change that touches one Dockerfile almost certainly has to touch all of them and the build config together, or the release does not hold.
+
+**Trace context is propagated unconditionally, by design.** `1c8abe20` removed the environment-variable gate so a service mesh or another process can inject context and have it survive the hop. The stated reason is that a span created upstream appears orphaned if this service drops the headers. The same commit deliberately leaves propagation out of leaf services that make no downstream calls.
 
 # Citations
 
-1. `01b3dbc0` - fix(deps): update dependency @grpc/grpc-js to v1.14.4 [security] (#3388).
-2. `1ea14802` - fix(deps): update dependency @opentelemetry/sdk-node to v0.217.0 [security] (#3357).
-3. `1c8abe20` - Propagate trace context always (#1345).
+1. `ed7b9419` — Revert "Add support for arm64 (#2589)".
+2. `ccfb5908` — Reapply "Add support for arm64 (#2589)".
+3. `1c8abe20` — Propagate trace context always (#1345).

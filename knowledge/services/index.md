@@ -1,14 +1,14 @@
 # Services
 
-* [Frontend Service](frontend.md) - The Go frontend serves the web UI and translates browser workflows into backend gRPC calls.
-* [Checkout Service](checkoutservice.md) - The Go checkout service orchestrates cart, catalog, currency, payment, shipping, and email calls into an order.
-* [Cart Service](cartservice.md) - The C# cart service stores per-user cart items behind the CartService gRPC API.
-* [Product Catalog Service](productcatalogservice.md) - The Go product catalog service exposes product listing, lookup, and search over the repository catalog data.
-* [Currency Service](currencyservice.md) - The Node.js currency service exposes supported currencies and currency conversion over gRPC.
-* [Payment Service](paymentservice.md) - The Node.js payment service mock-validates cards and returns transaction IDs.
-* [Shipping Service](shippingservice.md) - The Go shipping service estimates shipping cost and produces mock shipment tracking IDs.
-* [Email Service](emailservice.md) - The Python email service implements mock order confirmation delivery.
-* [Recommendation Service](recommendationservice.md) - The Python recommendation service returns product IDs related to the current cart context.
-* [Ad Service](adservice.md) - The Java ad service returns contextual text ads based on page context keys.
-* [Load Generator](loadgenerator.md) - The Locust load generator drives realistic browser-like traffic against the frontend.
-* [Shopping Assistant Service](shoppingassistantservice.md) - The Python shopping assistant accepts image input and calls a Gemini-backed recommendation path.
+* [Ad Service](adservice.md) - Java service returning contextual ads for a set of category keywords.
+* [Cart Service](cartservice.md) - C# service holding per-session carts behind a pluggable store: Redis, AlloyDB or Spanner.
+* [Checkout Service](checkoutservice.md) - Go service that orchestrates placing an order across cart, catalog, currency, shipping, payment and email.
+* [Currency Service](currencyservice.md) - Node service converting money between currencies from a static ECB rate table.
+* [Email Service](emailservice.md) - Python service that renders an order confirmation. In the default deployment it only logs it.
+* [Frontend](frontend.md) - Go HTTP server that renders the storefront and fans every page out to the backing gRPC services.
+* [Load Generator](loadgenerator.md) - Python Locust client that drives synthetic shopper traffic against the frontend.
+* [Payment Service](paymentservice.md) - Node service that validates a card and returns a simulated transaction id. It charges nothing.
+* [Product Catalog Service](productcatalogservice.md) - Go service serving the product list, single products and search from a JSON catalog or a database.
+* [Recommendation Service](recommendationservice.md) - Python service returning related product ids, chosen at random from the catalog.
+* [Shipping Service](shippingservice.md) - Go service returning shipping quotes and issuing tracking ids. Both values are simulated.
+* [Shopping Assistant Service](shoppingassistantservice.md) - Python Flask service answering shopping questions with an LLM, reached over HTTP rather than gRPC.

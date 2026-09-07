@@ -1,47 +1,56 @@
 ---
 type: API Resource
 title: Storefront gRPC API
-description: The protobuf contract defines the RPC services and messages shared by all Online Boutique backends.
+description: The single protobuf contract every backend implements and every caller generates stubs from.
 resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/protos/demo.proto
-tags: [grpc, protobuf, api]
+tags: [grpc, protobuf, contract, api]
 timestamp: 2024-09-05T13:22:39-04:00
 source_files:
   - protos/demo.proto
-generated_by: catalogify/0.7.0
+generated_by: catalogify/0.8.0
 open_questions:
-  - "Are changes to `protos/demo.proto` expected to remain wire-compatible for externally deployed demo variants, or is the repo allowed to make breaking contract changes?"
+  - "Is `protos/demo.proto` the single source of truth, or are the per-service copies under `src/*/proto/` allowed to drift?"
+  - "Is there a compatibility policy for this file, given stubs are generated into five languages?"
 ---
-
 # Responsibilities
 
-`protos/demo.proto` is the canonical API contract for the storefront domain. Generated code is checked into each service language tree, but this file is the source contract for cart, recommendation, product catalog, shipping, currency, payment, email, checkout, and ads.
+One file defines nine gRPC services and every message they exchange. Each backend implements
+its own service; each caller generates a client. There is no REST layer between them — the
+[Frontend](../services/frontend.md) is the only HTTP surface in the system, and it translates.
 
 # Interfaces
 
-| RPC | Purpose |
+| Service | RPCs |
 | --- | --- |
-| `CartService.AddItem` | Adds an item and quantity to a user's cart. |
-| `CartService.GetCart` | Reads the current cart for a user. |
-| `CartService.EmptyCart` | Clears all items for a user. |
-| `RecommendationService.ListRecommendations` | Returns related product IDs for a user and cart context. |
-| `ProductCatalogService.ListProducts` | Lists all products in the catalog. |
-| `ProductCatalogService.GetProduct` | Fetches a single product by ID. |
-| `ProductCatalogService.SearchProducts` | Searches catalog items by query. |
-| `ShippingService.GetQuote` | Estimates shipping cost for an address and cart items. |
-| `ShippingService.ShipOrder` | Produces a mock shipping tracking ID. |
-| `CurrencyService.GetSupportedCurrencies` | Lists supported ISO currency codes. |
-| `CurrencyService.Convert` | Converts `Money` to a target currency. |
-| `PaymentService.Charge` | Validates and mock-charges a credit card. |
-| `EmailService.SendOrderConfirmation` | Sends a mock order confirmation. |
-| `CheckoutService.PlaceOrder` | Orchestrates cart-to-order checkout. |
-| `AdService.GetAds` | Returns contextual ads for page context keys. |
+| CartService | `AddItem`, `GetCart`, `EmptyCart` |
+| ProductCatalogService | `ListProducts`, `GetProduct`, `SearchProducts` |
+| ShippingService | `GetQuote`, `ShipOrder` |
+| CurrencyService | `GetSupportedCurrencies`, `Convert` |
+| PaymentService | `Charge` |
+| EmailService | `SendOrderConfirmation` |
+| CheckoutService | `PlaceOrder` |
+| RecommendationService | `ListRecommendations` |
+| AdService | `GetAds` |
+
+Health checking uses the standard `grpc.health.v1` protocol, vendored alongside.
 
 # Dependencies
 
-Every service concept links back here because its server implementation or generated client code is derived from this contract. The contract also defines shared data shapes documented in [Product Catalog Data](../data/product-catalog.md) where `Product` records are serialized into `products.json`.
+Implemented by every service except
+[Load Generator](../services/loadgenerator.md), which drives HTTP, and
+[Shopping Assistant](../services/shoppingassistantservice.md), which exposes HTTP.
 
-# Key files
+# Why it is shaped this way
 
-| Path | Role |
-| --- | --- |
-| `protos/demo.proto` | Canonical storefront service and message definitions. |
+**This is the highest-blast-radius file in the repository.** A change here regenerates stubs in
+Go, C#, Node, Python and Java simultaneously. Several services also keep their own copy under
+`src/*/proto/`, so a change made in one place and not the others produces a mismatch that
+compiles cleanly on both sides and fails at the wire.
+
+Money is carried as `units` plus `nanos` rather than a float, which is correct, and means every
+consumer has to do its own rounding. Nothing in the contract specifies how.
+
+The blast radius is not theoretical: cross-cutting changes in this repository routinely land in
+five services at once. See the trace-context and arm64 gotchas on
+[Frontend](../services/frontend.md) and [Checkout Service](../services/checkoutservice.md) for
+what that looks like in practice.

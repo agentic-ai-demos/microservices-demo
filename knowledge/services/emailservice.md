@@ -1,49 +1,44 @@
 ---
 type: Service
 title: Email Service
-description: The Python email service implements mock order confirmation delivery.
-resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/emailservice/email_server.py
-tags: [service, python, grpc, email]
+description: Python service that renders an order confirmation. In the default deployment it only logs it.
+resource: https://github.com/agentic-ai-demos/microservices-demo/blob/main/src/emailservice
+tags: [python, email, template, leaf]
 timestamp: 2026-08-24T16:44:54-04:00
 source_files:
-  - src/emailservice/email_server.py
-  - src/emailservice/email_client.py
-  - src/emailservice/logger.py
-  - src/emailservice/requirements.txt
-  - src/emailservice/Dockerfile
-generated_by: catalogify/0.7.0
+  - src/emailservice
+generated_by: catalogify/0.8.0
 open_questions:
-  - "Should dummy mode be treated as the only supported mode for this demo, or is real email delivery expected in downstream forks?"
+  - "Is confirmation delivery required to succeed for an order to be considered placed? Checkout calls it last and does not appear to compensate."
+  - "Is the template a supported customisation point, or internal?"
 ---
-
 # Responsibilities
 
-Email service implements order confirmation delivery for checkout. In this demo repository it is mock-oriented: `EmailService` and `DummyEmailService` share a base gRPC servicer, and the client helper formats a confirmation request for the service.
+Renders a Jinja template into a confirmation email for a placed order. The default deployment logs the result rather than sending it, so the send path is a stub standing in for a mail provider.
 
 # Interfaces
 
-| Symbol | Purpose |
+| RPC | Purpose |
 | --- | --- |
-| `BaseEmailService` | Base gRPC servicer shape. |
-| `EmailService` | Confirmation email implementation. |
-| `DummyEmailService` | No-op/mock email implementation. |
-| `HealthCheck` | gRPC health response implementation. |
-| `start` | Starts the gRPC server. |
-| `initStackdriverProfiling` | Optional profiler setup. |
-| `send_confirmation_email` | Client helper for manual/test calls. |
-| `getJSONLogger` | JSON logger factory. |
+| `SendOrderConfirmation` | Render and dispatch the confirmation for one order. |
 
 # Dependencies
 
-Email implements [Storefront gRPC API](../apis/storefront-grpc-api.md) and is called by [Checkout Service](checkoutservice.md). It shares Python dependency maintenance patterns with [Recommendation Service](recommendationservice.md) and [Load Generator](loadgenerator.md).
+A leaf: it calls nothing. Called only by [Checkout Service](checkoutservice.md) over the
+[storefront gRPC contract](../apis/storefront-grpc-api.md).
+
+It changes with [Recommendation Service](recommendationservice.md) in 89% of its commits at
+lift 5.4. They share no call path; they share a Python dependency set, and the dependency
+updater moves both together.
 
 # Gotchas
 
-* Python base image and certificate dependency updates have been security-driven across email, recommendation, and load generation, so update these images and requirements consistently (`21b5bd60`, `61c019bc`).
-* Docker platform support was reverted across all service images (`ed7b9419`).
+**Platform support is a cross-cutting change, not a per-service one.** arm64 support was added, reverted wholesale (`ed7b9419`, 13 files: every service Dockerfile plus `skaffold.yaml`), and later reapplied (`ccfb5908`). A base-image or platform change that touches one Dockerfile almost certainly has to touch all of them and the build config together, or the release does not hold.
+
+Like the payment service, this is a leaf that deliberately does not propagate trace context, because it makes no downstream calls, a decision recorded in the trace-context change described on
+[Checkout Service](checkoutservice.md).
 
 # Citations
 
-1. `21b5bd60` - Python container images upgrade to latest minor version (security upgrade) (#2233).
-2. `61c019bc` - chore(deps): update dependency certifi to v2022.12.7 [security] (#1371).
-3. `ed7b9419` - Revert "Add support for arm64 (#2589)".
+1. `ed7b9419` — Revert "Add support for arm64 (#2589)".
+2. `ccfb5908` — Reapply "Add support for arm64 (#2589)".
