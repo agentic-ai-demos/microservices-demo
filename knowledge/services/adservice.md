@@ -29,7 +29,7 @@ Ad service implements contextual ad lookup for frontend pages. The service maps 
 
 # Dependencies
 
-Ad implements [Storefront gRPC API](/apis/storefront-grpc-api.md) and is called by [Frontend Service](/services/frontend.md), which derives context keys from product/category pages. Deployment and resource settings are maintained in [Kubernetes Manifests](/operations/kubernetes-manifests.md), [Kustomize Variants](/operations/kustomize-variants.md), and [Helm Chart](/operations/helm-chart.md).
+Ad implements [Storefront gRPC API](../apis/storefront-grpc-api.md) and is called by [Frontend Service](frontend.md), which derives context keys from product/category pages. Deployment and resource settings are maintained in [Kubernetes Manifests](../operations/kubernetes-manifests.md), [Kustomize Variants](../operations/kustomize-variants.md), and [Helm Chart](../operations/helm-chart.md).
 
 # Gotchas
 

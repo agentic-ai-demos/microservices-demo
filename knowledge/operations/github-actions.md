@@ -38,7 +38,7 @@ GitHub Actions provide repository CI for main and pull requests, manifest valida
 
 # Dependencies
 
-The workflows exercise [Skaffold and Cloud Build](/operations/skaffold-cloudbuild.md), [Kubernetes Manifests](/operations/kubernetes-manifests.md), [Kustomize Variants](/operations/kustomize-variants.md), [Helm Chart](/operations/helm-chart.md), and [Terraform GKE Deployment](/operations/terraform-gke-deployment.md).
+The workflows exercise [Skaffold and Cloud Build](skaffold-cloudbuild.md), [Kubernetes Manifests](kubernetes-manifests.md), [Kustomize Variants](kustomize-variants.md), [Helm Chart](helm-chart.md), and [Terraform GKE Deployment](terraform-gke-deployment.md).
 
 # Key files
 

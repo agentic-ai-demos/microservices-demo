@@ -33,7 +33,7 @@ Currency service lists supported currencies and converts `Money` values into a t
 
 # Dependencies
 
-Currency implements [Storefront gRPC API](/apis/storefront-grpc-api.md) and is called by [Frontend Service](/services/frontend.md) and [Checkout Service](/services/checkoutservice.md). It historically moves with [Payment Service](/services/paymentservice.md) because both are Node.js gRPC services with shared dependency and observability updates.
+Currency implements [Storefront gRPC API](../apis/storefront-grpc-api.md) and is called by [Frontend Service](frontend.md) and [Checkout Service](checkoutservice.md). It historically moves with [Payment Service](paymentservice.md) because both are Node.js gRPC services with shared dependency and observability updates.
 
 # Gotchas
 

@@ -35,7 +35,7 @@ Email service implements order confirmation delivery for checkout. In this demo 
 
 # Dependencies
 
-Email implements [Storefront gRPC API](/apis/storefront-grpc-api.md) and is called by [Checkout Service](/services/checkoutservice.md). It shares Python dependency maintenance patterns with [Recommendation Service](/services/recommendationservice.md) and [Load Generator](/services/loadgenerator.md).
+Email implements [Storefront gRPC API](../apis/storefront-grpc-api.md) and is called by [Checkout Service](checkoutservice.md). It shares Python dependency maintenance patterns with [Recommendation Service](recommendationservice.md) and [Load Generator](loadgenerator.md).
 
 # Gotchas
 

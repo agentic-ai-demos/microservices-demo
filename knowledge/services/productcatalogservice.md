@@ -19,7 +19,7 @@ open_questions:
 
 # Responsibilities
 
-Product catalog service implements product listing, lookup, and substring search. It loads product data into memory from [Product Catalog Data](/data/product-catalog.md) and serves it over the product RPCs in [Storefront gRPC API](/apis/storefront-grpc-api.md).
+Product catalog service implements product listing, lookup, and substring search. It loads product data into memory from [Product Catalog Data](../data/product-catalog.md) and serves it over the product RPCs in [Storefront gRPC API](../apis/storefront-grpc-api.md).
 
 # Interfaces
 
@@ -35,7 +35,7 @@ Product catalog service implements product listing, lookup, and substring search
 
 # Dependencies
 
-The service depends on protobuf definitions from [Storefront gRPC API](/apis/storefront-grpc-api.md) and shares product IDs with [Frontend Service](/services/frontend.md), [Checkout Service](/services/checkoutservice.md), and [Recommendation Service](/services/recommendationservice.md). Its optional AlloyDB path ties it to [Terraform GKE Deployment](/operations/terraform-gke-deployment.md) and Kustomize components for database-backed variants.
+The service depends on protobuf definitions from [Storefront gRPC API](../apis/storefront-grpc-api.md) and shares product IDs with [Frontend Service](frontend.md), [Checkout Service](checkoutservice.md), and [Recommendation Service](recommendationservice.md). Its optional AlloyDB path ties it to [Terraform GKE Deployment](../operations/terraform-gke-deployment.md) and Kustomize components for database-backed variants.
 
 # Gotchas
 

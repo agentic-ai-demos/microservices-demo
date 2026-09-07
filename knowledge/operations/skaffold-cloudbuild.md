@@ -31,7 +31,7 @@ Skaffold defines the local build/deploy graph for service images and Kubernetes 
 
 # Dependencies
 
-Skaffold builds all [Services](/services/) and deploys [Kubernetes Manifests](/operations/kubernetes-manifests.md), with optional Kustomize profile additions. Cloud Build depends on a target GKE cluster and IAM permissions outside this repository.
+Skaffold builds all [Services](../services/) and deploys [Kubernetes Manifests](kubernetes-manifests.md), with optional Kustomize profile additions. Cloud Build depends on a target GKE cluster and IAM permissions outside this repository.
 
 # Gotchas
 

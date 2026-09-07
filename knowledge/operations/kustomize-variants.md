@@ -38,7 +38,7 @@ Kustomize provides composable deployment variants for the baseline application. 
 
 # Dependencies
 
-Kustomize depends on [Kubernetes Manifests](/operations/kubernetes-manifests.md) and has historically co-changed with [Helm Chart](/operations/helm-chart.md), especially where both deployment systems expose the same observability and security features.
+Kustomize depends on [Kubernetes Manifests](kubernetes-manifests.md) and has historically co-changed with [Helm Chart](helm-chart.md), especially where both deployment systems expose the same observability and security features.
 
 # Gotchas
 

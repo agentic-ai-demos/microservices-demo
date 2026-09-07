@@ -30,7 +30,7 @@ Recommendation service implements `ListRecommendations` and returns product IDs 
 
 # Dependencies
 
-Recommendation implements [Storefront gRPC API](/apis/storefront-grpc-api.md). It is called by [Frontend Service](/services/frontend.md) and returns IDs that the frontend resolves through [Product Catalog Service](/services/productcatalogservice.md). Co-change shows very strong historical coupling with [Email Service](/services/emailservice.md), mostly through shared Python dependency management.
+Recommendation implements [Storefront gRPC API](../apis/storefront-grpc-api.md). It is called by [Frontend Service](frontend.md) and returns IDs that the frontend resolves through [Product Catalog Service](productcatalogservice.md). Co-change shows very strong historical coupling with [Email Service](emailservice.md), mostly through shared Python dependency management.
 
 # Gotchas
 

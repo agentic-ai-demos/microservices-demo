@@ -38,7 +38,7 @@ The baseline manifests are the direct `kubectl apply` deployment for Online Bout
 
 # Dependencies
 
-These manifests instantiate every concept in [Services](/services/) and consume image names produced by [Skaffold and Cloud Build](/operations/skaffold-cloudbuild.md). [Kustomize Variants](/operations/kustomize-variants.md), [Helm Chart](/operations/helm-chart.md), and [Terraform GKE Deployment](/operations/terraform-gke-deployment.md) either reuse or mirror this baseline shape.
+These manifests instantiate every concept in [Services](../services/) and consume image names produced by [Skaffold and Cloud Build](skaffold-cloudbuild.md). [Kustomize Variants](kustomize-variants.md), [Helm Chart](helm-chart.md), and [Terraform GKE Deployment](terraform-gke-deployment.md) either reuse or mirror this baseline shape.
 
 # Gotchas
 

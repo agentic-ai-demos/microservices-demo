@@ -39,7 +39,7 @@ Cart service implements the cart portion of the shared gRPC contract and delegat
 
 # Dependencies
 
-Cart depends on [Storefront gRPC API](/apis/storefront-grpc-api.md) and on a storage backend configured by deployment manifests. It is called by [Frontend Service](/services/frontend.md) for cart views and mutations and by [Checkout Service](/services/checkoutservice.md) during order placement.
+Cart depends on [Storefront gRPC API](../apis/storefront-grpc-api.md) and on a storage backend configured by deployment manifests. It is called by [Frontend Service](frontend.md) for cart views and mutations and by [Checkout Service](checkoutservice.md) during order placement.
 
 # Gotchas
 

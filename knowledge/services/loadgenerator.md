@@ -17,7 +17,7 @@ open_questions:
 
 # Responsibilities
 
-The load generator runs Locust tasks that browse the home page, switch currency, view products, manage the cart, checkout, and log out. It targets [Frontend Service](/services/frontend.md) rather than calling backends directly.
+The load generator runs Locust tasks that browse the home page, switch currency, view products, manage the cart, checkout, and log out. It targets [Frontend Service](frontend.md) rather than calling backends directly.
 
 # Interfaces
 
@@ -35,7 +35,7 @@ The load generator runs Locust tasks that browse the home page, switch currency,
 
 # Dependencies
 
-Load generator depends on [Frontend Service](/services/frontend.md) HTTP routes and is deployed by [Kubernetes Manifests](/operations/kubernetes-manifests.md), [Skaffold and Cloud Build](/operations/skaffold-cloudbuild.md), and [Helm Chart](/operations/helm-chart.md). It co-changes with [Shopping Assistant Service](/services/shoppingassistantservice.md), [Email Service](/services/emailservice.md), and [Recommendation Service](/services/recommendationservice.md) due to shared Python dependency and image updates.
+Load generator depends on [Frontend Service](frontend.md) HTTP routes and is deployed by [Kubernetes Manifests](../operations/kubernetes-manifests.md), [Skaffold and Cloud Build](../operations/skaffold-cloudbuild.md), and [Helm Chart](../operations/helm-chart.md). It co-changes with [Shopping Assistant Service](shoppingassistantservice.md), [Email Service](emailservice.md), and [Recommendation Service](recommendationservice.md) due to shared Python dependency and image updates.
 
 # Gotchas
 

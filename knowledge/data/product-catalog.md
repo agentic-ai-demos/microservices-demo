@@ -28,7 +28,7 @@ open_questions:
 
 # Responsibilities
 
-The product catalog data is read by [Product Catalog Service](/services/productcatalogservice.md), then surfaced to the frontend and recommendation flow through [Storefront gRPC API](/apis/storefront-grpc-api.md). `catalog_loader.go` can load from the local JSON file or from AlloyDB-related paths depending on environment configuration.
+The product catalog data is read by [Product Catalog Service](../services/productcatalogservice.md), then surfaced to the frontend and recommendation flow through [Storefront gRPC API](../apis/storefront-grpc-api.md). `catalog_loader.go` can load from the local JSON file or from AlloyDB-related paths depending on environment configuration.
 
 # Interfaces
 
@@ -40,7 +40,7 @@ The product catalog data is read by [Product Catalog Service](/services/productc
 
 # Dependencies
 
-This data concept is owned by [Product Catalog Service](/services/productcatalogservice.md) and shared indirectly with [Frontend Service](/services/frontend.md), [Checkout Service](/services/checkoutservice.md), and [Recommendation Service](/services/recommendationservice.md) through product IDs and `Product` messages.
+This data concept is owned by [Product Catalog Service](../services/productcatalogservice.md) and shared indirectly with [Frontend Service](../services/frontend.md), [Checkout Service](../services/checkoutservice.md), and [Recommendation Service](../services/recommendationservice.md) through product IDs and `Product` messages.
 
 # Gotchas
 

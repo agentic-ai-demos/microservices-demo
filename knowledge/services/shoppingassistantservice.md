@@ -26,7 +26,7 @@ Shopping assistant is an optional Flask service for image-based product suggesti
 
 # Dependencies
 
-Shopping assistant is surfaced through [Frontend Service](/services/frontend.md) assistant handlers and deployed by [Kustomize Variants](/operations/kustomize-variants.md). It depends on Python packages for image and Google AI interactions and co-changes with [Load Generator](/services/loadgenerator.md), [Email Service](/services/emailservice.md), and [Recommendation Service](/services/recommendationservice.md) mostly through shared Python maintenance.
+Shopping assistant is surfaced through [Frontend Service](frontend.md) assistant handlers and deployed by [Kustomize Variants](../operations/kustomize-variants.md). It depends on Python packages for image and Google AI interactions and co-changes with [Load Generator](loadgenerator.md), [Email Service](emailservice.md), and [Recommendation Service](recommendationservice.md) mostly through shared Python maintenance.
 
 # Gotchas
 

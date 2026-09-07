@@ -38,7 +38,7 @@ open_questions:
 
 # Dependencies
 
-Every service concept links back here because its server implementation or generated client code is derived from this contract. The contract also defines shared data shapes documented in [Product Catalog Data](/data/product-catalog.md) where `Product` records are serialized into `products.json`.
+Every service concept links back here because its server implementation or generated client code is derived from this contract. The contract also defines shared data shapes documented in [Product Catalog Data](../data/product-catalog.md) where `Product` records are serialized into `products.json`.
 
 # Key files
 

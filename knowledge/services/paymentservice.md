@@ -34,7 +34,7 @@ Payment service implements the `Charge` RPC and delegates validation/mock chargi
 
 # Dependencies
 
-Payment implements [Storefront gRPC API](/apis/storefront-grpc-api.md) and is called by [Checkout Service](/services/checkoutservice.md). It shares Node.js gRPC and observability dependency maintenance with [Currency Service](/services/currencyservice.md).
+Payment implements [Storefront gRPC API](../apis/storefront-grpc-api.md) and is called by [Checkout Service](checkoutservice.md). It shares Node.js gRPC and observability dependency maintenance with [Currency Service](currencyservice.md).
 
 # Gotchas
 

@@ -19,9 +19,9 @@ open_questions:
 
 # Responsibilities
 
-Online Boutique demonstrates a polyglot e-commerce application that runs on Kubernetes. The frontend exposes the user-facing HTTP site; all backend business capabilities are separate services connected by the shared gRPC contract in [Storefront gRPC API](/apis/storefront-grpc-api.md).
+Online Boutique demonstrates a polyglot e-commerce application that runs on Kubernetes. The frontend exposes the user-facing HTTP site; all backend business capabilities are separate services connected by the shared gRPC contract in [Storefront gRPC API](../apis/storefront-grpc-api.md).
 
-The checkout path is the main orchestration flow: [Frontend Service](/services/frontend.md) calls [Checkout Service](/services/checkoutservice.md), which reads [Cart Service](/services/cartservice.md), prices items from [Product Catalog Service](/services/productcatalogservice.md), converts money through [Currency Service](/services/currencyservice.md), charges [Payment Service](/services/paymentservice.md), requests [Shipping Service](/services/shippingservice.md), and asks [Email Service](/services/emailservice.md) to send confirmation.
+The checkout path is the main orchestration flow: [Frontend Service](../services/frontend.md) calls [Checkout Service](../services/checkoutservice.md), which reads [Cart Service](../services/cartservice.md), prices items from [Product Catalog Service](../services/productcatalogservice.md), converts money through [Currency Service](../services/currencyservice.md), charges [Payment Service](../services/paymentservice.md), requests [Shipping Service](../services/shippingservice.md), and asks [Email Service](../services/emailservice.md) to send confirmation.
 
 # Interfaces
 
@@ -35,7 +35,7 @@ The checkout path is the main orchestration flow: [Frontend Service](/services/f
 
 # Dependencies
 
-The system-level dependency is the protobuf contract: services either implement a service from `protos/demo.proto` or call generated clients derived from it. Operationally, [Kubernetes Manifests](/operations/kubernetes-manifests.md), [Kustomize Variants](/operations/kustomize-variants.md), [Helm Chart](/operations/helm-chart.md), and [Terraform GKE Deployment](/operations/terraform-gke-deployment.md) are alternative ways to instantiate the same service graph.
+The system-level dependency is the protobuf contract: services either implement a service from `protos/demo.proto` or call generated clients derived from it. Operationally, [Kubernetes Manifests](../operations/kubernetes-manifests.md), [Kustomize Variants](../operations/kustomize-variants.md), [Helm Chart](../operations/helm-chart.md), and [Terraform GKE Deployment](../operations/terraform-gke-deployment.md) are alternative ways to instantiate the same service graph.
 
 Co-change highlights two important clusters. `src/frontend`, `src/checkoutservice`, `src/productcatalogservice`, and `src/shippingservice` move together with lift between 6.82 and 8.10, matching their shared checkout and product browsing contract. `src/currencyservice` and `src/paymentservice` move together with lift 7.10 because both are Node.js gRPC services with shared dependency and observability churn.
 

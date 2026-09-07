@@ -40,9 +40,9 @@ The frontend owns browser-facing HTTP routes, template rendering, session cookie
 
 # Dependencies
 
-The frontend depends on [Storefront gRPC API](/apis/storefront-grpc-api.md) clients for product catalog, cart, currency, recommendation, shipping, ad, and checkout. It reads backend addresses from environment variables set by [Kubernetes Manifests](/operations/kubernetes-manifests.md), [Kustomize Variants](/operations/kustomize-variants.md), or [Helm Chart](/operations/helm-chart.md).
+The frontend depends on [Storefront gRPC API](../apis/storefront-grpc-api.md) clients for product catalog, cart, currency, recommendation, shipping, ad, and checkout. It reads backend addresses from environment variables set by [Kubernetes Manifests](../operations/kubernetes-manifests.md), [Kustomize Variants](../operations/kustomize-variants.md), or [Helm Chart](../operations/helm-chart.md).
 
-Co-change with [Checkout Service](/services/checkoutservice.md), [Product Catalog Service](/services/productcatalogservice.md), and [Shipping Service](/services/shippingservice.md) has high lift because frontend pages expose the same browse/cart/checkout contracts those services implement.
+Co-change with [Checkout Service](checkoutservice.md), [Product Catalog Service](productcatalogservice.md), and [Shipping Service](shippingservice.md) has high lift because frontend pages expose the same browse/cart/checkout contracts those services implement.
 
 # Gotchas
 

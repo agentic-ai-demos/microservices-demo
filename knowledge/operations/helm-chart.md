@@ -42,7 +42,7 @@ The Helm chart packages Online Boutique for chart-based Kubernetes deployment. `
 
 # Dependencies
 
-The chart mirrors [Kubernetes Manifests](/operations/kubernetes-manifests.md) and overlaps heavily with [Kustomize Variants](/operations/kustomize-variants.md). It deploys all default [Services](/services/) except shopping assistant, which is marked unavailable in the chart values.
+The chart mirrors [Kubernetes Manifests](kubernetes-manifests.md) and overlaps heavily with [Kustomize Variants](kustomize-variants.md). It deploys all default [Services](../services/) except shopping assistant, which is marked unavailable in the chart values.
 
 # Gotchas
 

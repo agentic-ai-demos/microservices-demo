@@ -33,7 +33,7 @@ Terraform enables required Google Cloud APIs, creates an Autopilot GKE cluster, 
 
 # Dependencies
 
-Terraform applies [Kustomize Variants](/operations/kustomize-variants.md) or [Kubernetes Manifests](/operations/kubernetes-manifests.md), depending on `filepath_manifest`. Cart backend settings connect it to [Cart Service](/services/cartservice.md).
+Terraform applies [Kustomize Variants](kustomize-variants.md) or [Kubernetes Manifests](kubernetes-manifests.md), depending on `filepath_manifest`. Cart backend settings connect it to [Cart Service](../services/cartservice.md).
 
 # Gotchas
 

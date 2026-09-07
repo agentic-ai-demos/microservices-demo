@@ -33,7 +33,7 @@ Shipping service implements quote estimation and mock shipment creation for chec
 
 # Dependencies
 
-Shipping implements [Storefront gRPC API](/apis/storefront-grpc-api.md) and is called by [Frontend Service](/services/frontend.md) for cart quotes and [Checkout Service](/services/checkoutservice.md) during order placement. It co-changes strongly with frontend, checkout, and product catalog because shipping totals appear in cart and order flows.
+Shipping implements [Storefront gRPC API](../apis/storefront-grpc-api.md) and is called by [Frontend Service](frontend.md) for cart quotes and [Checkout Service](checkoutservice.md) during order placement. It co-changes strongly with frontend, checkout, and product catalog because shipping totals appear in cart and order flows.
 
 # Gotchas
 

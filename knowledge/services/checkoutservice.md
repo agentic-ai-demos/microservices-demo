@@ -35,9 +35,9 @@ Checkout owns the cart-to-order workflow. It opens gRPC client connections to pr
 
 # Dependencies
 
-Checkout is the densest backend orchestration point and depends on [Cart Service](/services/cartservice.md), [Product Catalog Service](/services/productcatalogservice.md), [Currency Service](/services/currencyservice.md), [Payment Service](/services/paymentservice.md), [Shipping Service](/services/shippingservice.md), [Email Service](/services/emailservice.md), and [Storefront gRPC API](/apis/storefront-grpc-api.md).
+Checkout is the densest backend orchestration point and depends on [Cart Service](cartservice.md), [Product Catalog Service](productcatalogservice.md), [Currency Service](currencyservice.md), [Payment Service](paymentservice.md), [Shipping Service](shippingservice.md), [Email Service](emailservice.md), and [Storefront gRPC API](../apis/storefront-grpc-api.md).
 
-History shows high-lift co-change with [Frontend Service](/services/frontend.md), [Product Catalog Service](/services/productcatalogservice.md), and [Shipping Service](/services/shippingservice.md), consistent with checkout form shape, product pricing, and shipping totals moving together.
+History shows high-lift co-change with [Frontend Service](frontend.md), [Product Catalog Service](productcatalogservice.md), and [Shipping Service](shippingservice.md), consistent with checkout form shape, product pricing, and shipping totals moving together.
 
 # Gotchas
 
